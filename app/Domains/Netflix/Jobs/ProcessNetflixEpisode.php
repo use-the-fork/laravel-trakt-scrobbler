@@ -3,6 +3,7 @@
 	namespace App\Domains\Netflix\Jobs;
 
 	use App\Domains\Common\Models\Episode;
+	use App\Domains\Common\Models\Service;
 	use App\Domains\Netflix\Services\NetflixService;
 	use Carbon\Carbon;
 	use Illuminate\Bus\Queueable;
@@ -35,7 +36,7 @@
 		public function handle()
 		{
 			$service = new NetflixService();
-			$item = $service->getItem($this->episode->service_id);
+			$item = $service->getItem($this->episode->item_id);
 
 			if (
 				!isset($item->video)
@@ -46,23 +47,24 @@
 			foreach ($item->video->seasons as $season) {
 				foreach ($season->episodes as $episode) {
 					if (
-						$episode->episodeId == $this->episode->service_id
+						$episode->episodeId == $this->episode->item_id
 					) {
 
 						$this->episode->year = $season->year;
 						$this->episode->season = $season->seq;
-						$this->episode->release_date = Carbon::parse($episode->start / 1000);
+						$this->episode->released_at = Carbon::parse($service->convertUnixDate($episode->start));
 						$this->episode->number = $episode->seq;
 						$this->episode->show->year = $season->year;
 						$this->episode->save();
 						$this->episode->show->save();
 					} else if(
 						// Since we are here lets see if any of these other episodes match and can be updated.
-						$otherEpisode = Episode::where('service', 'netflix')->where('service_id', $episode->episodeId)->first()
+						$otherEpisode = Service::where('name', 'netflix')->first()->episodes()->where('service_id', 1)->where('item_id', $episode->episodeId)->first()
 					){
+
 						$otherEpisode->year = $season->year;
 						$otherEpisode->season = $season->seq;
-						$otherEpisode->release_date = Carbon::parse($episode->start / 1000);
+						$otherEpisode->released_at = Carbon::parse($service->convertUnixDate($episode->start));
 						$otherEpisode->number = $episode->seq;
 						$otherEpisode->show->year = $season->year;
 						$otherEpisode->save();

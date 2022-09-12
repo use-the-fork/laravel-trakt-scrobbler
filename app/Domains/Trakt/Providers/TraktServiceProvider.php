@@ -1,11 +1,11 @@
 <?php
 
-	namespace App\Domains\Netflix\Providers;
+	namespace App\Domains\Trakt\Providers;
 
-	use App\Domains\Netflix\Commands\Setup;
+	use App\Domains\Trakt\Commands\Setup;
 	use Illuminate\Support\ServiceProvider;
 
-	final class NetflixServiceProvider extends ServiceProvider
+	final class TraktServiceProvider extends ServiceProvider
 	{
 
 		public function boot(): void

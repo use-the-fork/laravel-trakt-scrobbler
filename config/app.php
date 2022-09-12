@@ -196,6 +196,7 @@ return [
         App\Providers\RouteServiceProvider::class,
 
 		App\Domains\Netflix\Providers\NetflixServiceProvider::class,
+		App\Domains\Trakt\Providers\TraktServiceProvider::class,
 
     ],
 

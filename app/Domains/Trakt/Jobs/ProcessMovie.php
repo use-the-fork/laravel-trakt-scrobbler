@@ -34,14 +34,13 @@
 		public function handle()
 		{
 			$traktSearchService = (new TraktSearchService());
-			$matches = $traktSearchService->searchMovie($this->movie);
+			$matches = $traktSearchService->search('movie', $this->movie);
 			if (
 				count($matches) === 1
 			) {
 				$this->append($matches[0]);
 			} else {
 				foreach ($matches as $match) {
-
 					if ($traktSearchService->compareMatch('movie', $this->movie, $match)) {
 						$this->append($match);
 					};
@@ -51,19 +50,7 @@
 
 		private function append($match)
 		{
-
-			if (isset($match['movie']['year'])) {
-				$this->movie->year = $match['movie']['year'];
-			}
-
-			if (isset($match['movie']['ids']['trakt'])) {
-				$this->movie->trakt_id = $match['movie']['ids']['trakt'];
-			}
-
-			if (isset($match['movie']['ids']['tmdb'])) {
-				$this->movie->tmdb_id = $match['movie']['ids']['tmdb'];
-			}
-
+			$this->movie->trakt = $match['movie']['ids'];
 			$this->movie->save();
 
 		}

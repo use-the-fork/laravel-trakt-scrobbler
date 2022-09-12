@@ -55,9 +55,10 @@
 			}
 
 			if(
-				!empty($this->show->trakt_id)
+				!empty($this->show->trakt)
 			){
-				$match = $traktSearchService->searchEpisode($this->show->trakt_id, $this->episode->season, $this->episode->number);
+
+				$match = $traktSearchService->searchEpisode($this->show->trakt['trakt'], $this->episode->season, $this->episode->number);
 				if(
 					!empty($match)
 				){
@@ -70,13 +71,7 @@
 		private function appendEpisode($match)
 		{
 
-			if (isset($match['ids']['trakt'])) {
-				$this->episode->trakt_id = $match['ids']['trakt'];
-			}
-
-			if (isset($match['ids']['tmdb'])) {
-				$this->episode->tmdb_id = $match['ids']['tmdb'];
-			}
+			$this->episode['trakt'] = $match['ids'];
 
 			$this->episode->save();
 		}
@@ -88,13 +83,7 @@
 				$this->show->year = $match['show']['year'];
 			}
 
-			if (isset($match['show']['ids']['trakt'])) {
-				$this->show->trakt_id = $match['show']['ids']['trakt'];
-			}
-
-			if (isset($match['show']['ids']['tmdb'])) {
-				$this->show->tmdb_id = $match['show']['ids']['tmdb'];
-			}
+			$this->show['trakt'] = $match['show']['ids'];
 
 			$this->show->save();
 		}

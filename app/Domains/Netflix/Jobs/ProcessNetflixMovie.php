@@ -35,7 +35,7 @@ class ProcessNetflixMovie implements ShouldQueue
     public function handle()
     {
         $service = new NetflixService();
-		$item = $service->getItem($this->movie->service_id);
+		$item = $service->getItem($this->movie->item_id);
 
 		if(
 			!isset($item->video)
@@ -45,7 +45,7 @@ class ProcessNetflixMovie implements ShouldQueue
 
 		//Update the item with the meta data
 		$this->movie->year = $item->video->year;
-		$this->movie->release_date = Carbon::parse($item->video->start / 1000);
+		$this->movie->released_at = Carbon::parse($service->convertUnixDate($item->video->start));
 		$this->movie->save();
     }
 }

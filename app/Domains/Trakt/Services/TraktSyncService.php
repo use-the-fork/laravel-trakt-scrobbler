@@ -11,13 +11,12 @@
 			//See if we need to refresh the token before getting history
 			$this->refreshToken();
 
-			$trakt = json_decode(Cache::get('trakt'), true);
 
 			$client = new \GuzzleHttp\Client();
 			$res = $client->request('GET', $this->syncUrl, [
 				'headers' => [
 					'Content-Type' => 'application/json',
-					'Authorization' => "Bearer {$trakt['access_token']['token']}",
+					'Authorization' => "Bearer {$this->traktConfig['config']['access_token']}",
 					'trakt-api-version' => $this->apiVersion,
 					'trakt-api-key' => $this->client_id
 				],

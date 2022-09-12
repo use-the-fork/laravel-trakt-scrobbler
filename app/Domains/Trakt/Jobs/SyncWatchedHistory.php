@@ -13,7 +13,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class SyncHistory implements ShouldQueue
+class SyncWatchedHistory implements ShouldQueue
 {
 	use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -34,27 +34,28 @@ class SyncHistory implements ShouldQueue
 	public function handle()
 	{
 
-		$request = [];
-
-
 		foreach ($this->getMovies() as $movie) {
-			$request['movies'][] = [
-				'watched_at' => Carbon::parse($movie->watched_at)->format('c'),
-				'ids' => collect($movie['trakt'])->filter()->all()
-			];
+
+			$traktSearchService = (new TraktHistoryService())->getHistory('movies', $movie['trakt']['trakt']);
+			if(!empty($traktSearchService)){
+				$traktConfig = $movie['trakt'];
+				$traktConfig['sync-ids'] = collect($traktSearchService)->pluck('id')->toArray();
+				$movie['trakt'] = $traktConfig;
+				$movie->synced = TRUE;
+				$movie->save();
+			}
 		}
 
 		foreach ($this->getEpisodes() as $episode) {
-			$request['episodes'][] = [
-				'watched_at' => Carbon::parse($episode->watched_at)->format('c'),
-				'ids' => collect($episode['trakt'])->filter()->all()
-			];
+			$traktSearchService = (new TraktHistoryService())->getHistory('episodes', $episode['trakt']['trakt']);
+			if (!empty($traktSearchService)) {
+				$traktConfig = $episode['trakt'];
+				$traktConfig['sync-ids'] = collect($traktSearchService)->pluck('id')->toArray();
+				$episode['trakt'] = $traktConfig;
+				$episode->synced = TRUE;
+				$episode->save();
+			}
 		}
-
-		dd($request);
-
-		$traktSearchService = (new TraktHistoryService())->sync($request);
-		dd($traktSearchService);
 	}
 
 	private function getMovies()

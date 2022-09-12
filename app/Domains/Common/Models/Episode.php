@@ -25,7 +25,7 @@
 			'trakt',
 			'service',
 			'sync',
-			'release_date',
+			'released_at',
 			'season',
 			'number',
 		];
