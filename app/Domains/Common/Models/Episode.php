@@ -1,47 +1,53 @@
 <?php
 
-	namespace App\Domains\Common\Models;
+namespace App\Domains\Common\Models;
 
-	use Illuminate\Database\Eloquent\Factories\HasFactory;
-	use Illuminate\Database\Eloquent\Model;
-	use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
-	class Episode extends Model
-	{
-		use HasFactory;
+class Episode extends Model
+{
+    use HasFactory;
 
-		protected $casts = [
-			'trakt'   => 'array',
-			'service' => 'array',
-		];
+    protected $casts = [
+        'trakt'   => 'array',
+        'service' => 'array',
+    ];
 
-		protected $fillable = [
-			'service_id',
-			'item_id',
-			'title',
-			'year',
-			'watched_at',
-			'progress',
-			'trakt',
-			'service',
-			'sync',
-			'released_at',
-			'season',
-			'number',
-		];
+    protected $fillable = [
+        'service_id',
+        'item_id',
+        'title',
+        'year',
+        'watched_at',
+        'progress',
+        'trakt',
+        'service',
+        'sync',
+        'released_at',
+        'season',
+        'number',
+    ];
 
-		public function getSlug(): string
-		{
-			return Str::slug("{$this->title}");
-		}
 
-		public function service()
-		{
-			return $this->belongsTo(Service::class);
-		}
+    public function getEncoded(): string
+    {
+        return urlencode(Str::lower("{$this->title}"));
+    }
 
-		public function show()
-		{
-			return $this->belongsTo(Show::class);
-		}
-	}
+    public function getSlug(): string
+    {
+        return Str::slug("{$this->title}");
+    }
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    public function show()
+    {
+        return $this->belongsTo(Show::class);
+    }
+}

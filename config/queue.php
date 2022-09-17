@@ -73,6 +73,21 @@ return [
 
     ],
 
+    'rateLimits' => [
+        'trakt-get' => [ // queue name
+            'allows' => 3, // 1 job
+            'every' => 1 // per 5 seconds
+        ],
+        'trakt-post' => [ // queue name
+            'allows' => 1, // 1 job
+            'every' => 1 // per 5 seconds
+        ],
+        'service' => [
+            'allows' => 2,
+            'every' => 1
+        ]
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Failed Queue Jobs

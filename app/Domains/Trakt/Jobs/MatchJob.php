@@ -13,7 +13,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class SyncHistory implements ShouldQueue
+class MatchJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -33,34 +33,22 @@ class SyncHistory implements ShouldQueue
      */
     public function handle()
     {
-
-        $request = [];
-
-
-        foreach ($this->getMovies() as $movie) {
-            $request['movies'][] = [
-                'watched_at' => Carbon::parse($movie->watched_at)->format('c'),
-                'ids' => collect($movie['trakt'])->filter()->all()
-            ];
+        foreach ($this->getMovies() as $count => $movie) {
+            dispatch(new ProcessMovie($movie));
         }
 
-        foreach ($this->getEpisodes() as $episode) {
-            $request['episodes'][] = [
-                'watched_at' => Carbon::parse($episode->watched_at)->format('c'),
-                'ids' => collect($episode['trakt'])->filter()->all()
-            ];
+        foreach ($this->getEpisodes() as $count => $episode) {
+            dispatch(new ProcessEpisode($episode));
         }
-
-        $traktSearchService = (new TraktHistoryService())->sync($request);
     }
 
     private function getMovies()
     {
-        return Movie::where('synced', 0)->whereNotNull('trakt')->where('progress', '>=', 75)->get();
+        return Movie::where('synced', 0)->whereNull('trakt')->get();
     }
 
     private function getEpisodes()
     {
-        return Episode::where('synced', 0)->whereNotNull('trakt')->where('progress', '>=', 75)->get();
+        return Episode::where('synced', 0)->whereNull('trakt')->whereNotNull('number')->get();
     }
 }
