@@ -33,7 +33,6 @@ class ProcessNetflixMeta implements ShouldQueue
      */
     public function handle()
     {
-        $service = new NetflixService();
         foreach ($this->getEpisodes() as $episode) {
             dispatch(new ProcessNetflixEpisode($episode));
         }

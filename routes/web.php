@@ -1,7 +1,7 @@
 <?php
 
-	use App\Http\Controllers\TraktSetupController;
-	use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TraktSetupController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,4 +18,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::resource('trakt-setup', TraktSetupController::class);
+include_once app_path() . '/Http/webRouter.php';

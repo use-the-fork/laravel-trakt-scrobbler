@@ -4,8 +4,9 @@ namespace App\Domains\Netflix\Commands;
 
 use Illuminate\Console\Command;
 use App\Domains\Common\Models\Service;
-use App\Domains\Netflix\Services\NetflixLoginService;
+use App\Domains\Netflix\Jobs\ProcessNetflixMeta;
 use App\Domains\Netflix\Services\NetflixService;
+use App\Domains\Netflix\Services\NetflixLoginService;
 
 class NetflixCommands extends Command
 {
@@ -40,15 +41,37 @@ class NetflixCommands extends Command
 
         $command = $this->choice(
             'Please select what you would like to do',
-            ['Sync History', 'Sync Meta']
+            ['Sync History', 'Sync Meta', 'Dispatch Job']
         );
-
 
         switch ($command) {
             case 'Sync History':
                 $this->syncHistory();
                 return;
+            case 'Dispatch Job':
+                $this->dispatchJob();
+                return;
         }
+    }
+
+    private function dispatchJob()
+    {
+
+        $command = $this->choice(
+            'Please select what you would like to do',
+            ['Sync Meta']
+        );
+
+        switch ($command) {
+            case 'Sync Meta':
+                dispatch(new ProcessNetflixMeta());
+                return;
+            case 'Dispatch Job':
+                $this->dispatchJob();
+                return;
+        }
+
+        return true;
     }
 
     private function syncHistory()

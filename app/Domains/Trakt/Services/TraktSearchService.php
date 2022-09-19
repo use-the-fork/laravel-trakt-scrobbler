@@ -2,10 +2,8 @@
 
 namespace App\Domains\Trakt\Services;
 
-use App\Domains\Common\Models\Episode;
-use App\Domains\Common\Models\Movie;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 
 class TraktSearchService extends TraktApiService
 {
@@ -16,17 +14,14 @@ class TraktSearchService extends TraktApiService
         //See if we need to refresh the token before getting history
         $this->refreshToken();
 
-        $client = new \GuzzleHttp\Client();
-        $res = $client->request('GET', "{$this->searchUrl}/{$type}?query=" . $item->getEncoded() . "&extended=full", [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Authorization' => "Bearer {$this->traktConfig['config']['access_token']}",
-                'trakt-api-version' => $this->apiVersion,
-                'trakt-api-key' => $this->client_id
-            ],
-        ]);
-
-        return json_decode($res->getBody()->getContents(), TRUE);
+        return Http::retry(3, 1000)->withHeaders([
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => $this->apiVersion,
+            'trakt-api-key' => $this->client_id
+        ])->acceptJson()
+            ->withToken($this->traktConfig['config']['access_token'])
+            ->get("{$this->searchUrl}/{$type}?query=" . $item->getEncoded() . "&extended=full")
+            ->throw()->json();
     }
 
     public function searchEpisode($id, $season, $episode)
@@ -35,19 +30,18 @@ class TraktSearchService extends TraktApiService
         //See if we need to refresh the token before getting history
         $this->refreshToken();
 
-        $trakt = json_decode(Cache::get('trakt'), true);
+        if (app()->runningInConsole()) {
+            echo "\n{$this->showUrl}/{$id}/seasons/{$season}/episodes/{$episode}&extended=full\n";
+        }
 
-        $client = new \GuzzleHttp\Client();
-        $res = $client->request('GET', "{$this->showUrl}/{$id}/seasons/{$season}/episodes/{$episode}", [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Authorization' => "Bearer {$this->traktConfig['config']['access_token']}",
-                'trakt-api-version' => $this->apiVersion,
-                'trakt-api-key' => $this->client_id
-            ],
-        ]);
-
-        return json_decode($res->getBody()->getContents(), TRUE);
+        return Http::retry(3, 1000)->withHeaders([
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => $this->apiVersion,
+            'trakt-api-key' => $this->client_id
+        ])->acceptJson()
+            ->withToken($this->traktConfig['config']['access_token'])
+            ->get("{$this->showUrl}/{$id}/seasons/{$season}/episodes/{$episode}&extended=full")
+            ->throw()->json();
     }
 
     public function compareServiceMatch($type, $item, $match)

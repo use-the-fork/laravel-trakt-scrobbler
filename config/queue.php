@@ -83,7 +83,7 @@ return [
             'every' => 1 // per 5 seconds
         ],
         'service' => [
-            'allows' => 2,
+            'allows' => 3,
             'every' => 1
         ]
     ],

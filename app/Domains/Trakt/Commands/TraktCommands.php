@@ -2,10 +2,12 @@
 
 namespace App\Domains\Trakt\Commands;
 
-use App\Domains\Common\Models\Service;
-use App\Domains\Netflix\Services\NetflixLoginService;
-use App\Domains\Trakt\Services\TraktAuthService;
 use Illuminate\Console\Command;
+use App\Domains\Trakt\Jobs\MatchJob;
+use App\Domains\Common\Models\Service;
+use App\Domains\Trakt\Jobs\SyncHistoryFromTrakt;
+use App\Domains\Trakt\Services\TraktAuthService;
+use App\Domains\Netflix\Services\NetflixLoginService;
 
 class TraktCommands extends Command
 {
@@ -20,7 +22,7 @@ class TraktCommands extends Command
      *
      * @var string
      */
-    protected $signature = 'service:trakt:setup';
+    protected $signature = 'service:trakt';
 
     /**
      * Execute the console command.
@@ -40,7 +42,10 @@ class TraktCommands extends Command
 
         $command = $this->choice(
             'Please select what you would like to do',
-            ['Sync History', 'Sync Meta']
+            [
+                'Sync History',
+                'Sync Meta', 'Dispatch Job'
+            ]
         );
 
 
@@ -48,7 +53,31 @@ class TraktCommands extends Command
             case 'Sync History':
                 $this->syncHistory();
                 return;
+            case 'Dispatch Job':
+                $this->dispatchJob();
+                return;
         }
+    }
+
+
+    private function dispatchJob()
+    {
+
+        $command = $this->choice(
+            'Please select what you would like to do',
+            ['Sync History From Trakt', 'Match Watch History']
+        );
+
+        switch ($command) {
+            case 'Sync History From Trakt':
+                dispatch(new SyncHistoryFromTrakt());
+                return;
+            case 'Match Watch History':
+                dispatch(new MatchJob());
+                return;
+        }
+
+        return true;
     }
 
     private function setup()

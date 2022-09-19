@@ -15,6 +15,7 @@ use App\Domains\Trakt\Jobs\ProcessEpisode;
 use App\Domains\Trakt\Jobs\SyncWatchedHistory;
 use App\Domains\Netflix\Jobs\ProcessNetflixMeta;
 use App\Domains\Netflix\Services\NetflixService;
+use App\Domains\Trakt\Jobs\SyncHistoryFromTrakt;
 use App\Domains\Netflix\Jobs\ProcessNetflixMovie;
 use App\Domains\Trakt\Services\TraktSearchService;
 use App\Domains\Netflix\Jobs\ProcessNetflixEpisode;
@@ -43,6 +44,10 @@ class test extends Command
      */
     public function handle()
     {
+
+        $t = new SyncHistoryFromTrakt();
+        $t->handle();
+        dd(1);
 
         //$t = new SyncWatchedHistory();
         //$t->handle();

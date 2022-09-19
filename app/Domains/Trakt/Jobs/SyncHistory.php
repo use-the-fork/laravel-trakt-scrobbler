@@ -40,16 +40,18 @@ class SyncHistory implements ShouldQueue
         foreach ($this->getMovies() as $movie) {
             $request['movies'][] = [
                 'watched_at' => Carbon::parse($movie->watched_at)->format('c'),
-                'ids' => collect($movie['trakt'])->filter()->all()
+                'ids' => collect($movie['trakt']['ids'])->filter()->all()
             ];
         }
 
         foreach ($this->getEpisodes() as $episode) {
             $request['episodes'][] = [
                 'watched_at' => Carbon::parse($episode->watched_at)->format('c'),
-                'ids' => collect($episode['trakt'])->filter()->all()
+                'ids' => collect($episode['trakt']['ids'])->filter()->all()
             ];
         }
+
+        dd($request);
 
         $traktSearchService = (new TraktHistoryService())->sync($request);
     }

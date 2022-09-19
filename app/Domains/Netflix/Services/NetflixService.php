@@ -2,14 +2,16 @@
 
 namespace App\Domains\Netflix\Services;
 
-use App\Domains\Common\Models\Episode;
-use App\Domains\Common\Models\Movie;
-use App\Domains\Common\Models\Service;
-use App\Domains\Common\Models\Show;
-use App\Domains\Common\Services\StreamingService;
-use App\Domains\Netflix\Enums\NetflixConstant;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use App\Domains\Common\Models\Show;
+use App\Domains\Common\Models\Movie;
+use App\Domains\Common\Models\Episode;
+use App\Domains\Common\Models\Service;
+use App\Domains\Netflix\Enums\NetflixConstant;
+use App\Domains\Common\Services\StreamingService;
+use App\Domains\Netflix\Jobs\ProcessNetflixMovie;
+use App\Domains\Netflix\Jobs\ProcessNetflixEpisode;
 
 class NetflixService extends StreamingService
 {
@@ -185,6 +187,9 @@ class NetflixService extends StreamingService
             $theShow->service()->associate($this->SERVICE);
 
             $theShow->episodes()->save($theEpisode);
+
+            //Kick off meta process
+            dispatch(new ProcessNetflixEpisode($theEpisode));
         } else {
             $theMovie = Movie::firstOrNew([
                 'service_id' => $this->SERVICE->id,
@@ -205,6 +210,8 @@ class NetflixService extends StreamingService
             $theMovie->service()->associate($this->SERVICE);
 
             $theMovie->save();
+
+            dispatch(new ProcessNetflixMovie($theMovie));
         }
     }
 
