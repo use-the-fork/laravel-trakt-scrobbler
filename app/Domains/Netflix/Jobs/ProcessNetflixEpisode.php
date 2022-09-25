@@ -5,6 +5,8 @@ namespace App\Domains\Netflix\Jobs;
 use App\Domains\Common\Models\Episode;
 use App\Domains\Common\Models\Service;
 use App\Domains\Netflix\Services\NetflixService;
+use App\Domains\Trakt\Jobs\ProcessEpisode;
+use App\Domains\Trakt\Jobs\ProcessMovie;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -42,6 +44,9 @@ class ProcessNetflixEpisode implements ShouldQueue
             !empty($this->episode->number)
         ) {
             //we dont need to process items that already have a season or number
+
+            //Dispatch a Trakt Search Job
+            dispatch(new ProcessEpisode($this->episode));
             return;
         }
 
@@ -66,7 +71,11 @@ class ProcessNetflixEpisode implements ShouldQueue
                     $this->episode->number = $episode->seq;
                     $this->episode->show->year = $season->year;
                     $this->episode->save();
+                    $this->episode->refresh();
                     $this->episode->show->save();
+
+                    //Dispatch a Trakt Search Job
+                    dispatch(new ProcessEpisode($this->episode));
                 } else if (
                     // Since we are here lets see if any of these other episodes match and can be updated.
                     $otherEpisode = Service::where('name', 'netflix')->first()->episodes()->where('service_id', 1)->where('item_id', $episode->episodeId)->first()
@@ -78,7 +87,11 @@ class ProcessNetflixEpisode implements ShouldQueue
                     $otherEpisode->number = $episode->seq;
                     $otherEpisode->show->year = $season->year;
                     $otherEpisode->save();
+                    $otherEpisode->refresh();
                     $otherEpisode->show->save();
+
+                    //Dispatch a Trakt Search Job
+                    dispatch(new ProcessEpisode($otherEpisode));
                 }
             }
         }

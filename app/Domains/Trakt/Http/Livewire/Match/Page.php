@@ -2,12 +2,13 @@
 
 namespace App\Domains\Trakt\Http\Livewire\Match;
 
-use App\Domains\Common\Models\Episode;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Domains\Common\Models\Show;
 use App\Domains\Trakt\Models\Trakt;
 use App\Domains\Common\Models\Movie;
-use App\Domains\Common\Models\Show;
+use App\Domains\Common\Models\Episode;
+use Illuminate\Database\Eloquent\Builder;
 use App\Domains\Trakt\Enums\TraktStatus;
 use App\Domains\Trakt\Enums\TraktMatchType;
 
@@ -22,6 +23,7 @@ class Page extends Component
     public $hideSynced = 1;
     public $pageSize = 14;
     public $limitPerPage = 10;
+    public $minWatched = 75;
 
     protected $listeners = [
         'load-more' => 'loadMore'
@@ -72,7 +74,9 @@ class Page extends Component
             $items = $items->where('match_type', TraktMatchType::NONE);
         }
 
-        $items = $items->paginate($this->limitPerPage);
+        $items = $items->whereHas('traktable', function (Builder $query) {
+            $query->where('progress', '>=', $this->minWatched);
+        })->paginate($this->limitPerPage);
         $this->emit('userStore');
 
         return view('domains.trakt.livewire.match.page', [

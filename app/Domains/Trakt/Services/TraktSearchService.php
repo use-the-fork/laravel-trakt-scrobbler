@@ -8,6 +8,51 @@ use Illuminate\Support\Facades\Http;
 class TraktSearchService extends TraktApiService
 {
 
+    public function getMovieSummary($id)
+    {
+        //See if we need to refresh the token before getting history
+        $this->refreshToken();
+
+        return Http::retry(3, 1000)->withHeaders([
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => $this->apiVersion,
+            'trakt-api-key' => $this->client_id
+        ])->acceptJson()
+            ->withToken($this->traktConfig['config']['access_token'])
+            ->get("{$this->apiUrl}/movies/{$id}?extended=full")
+            ->throw()->json();
+    }
+
+    public function getShowSummary($id)
+    {
+        //See if we need to refresh the token before getting history
+        $this->refreshToken();
+
+        return Http::retry(3, 1000)->withHeaders([
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => $this->apiVersion,
+            'trakt-api-key' => $this->client_id
+        ])->acceptJson()
+            ->withToken($this->traktConfig['config']['access_token'])
+            ->get("{$this->apiUrl}/shows/{$id}?extended=full")
+            ->throw()->json();
+    }
+
+    public function getEpisodeSummary($id, $seasons, $episode)
+    {
+        //See if we need to refresh the token before getting history
+        $this->refreshToken();
+
+        return Http::retry(3, 1000)->withHeaders([
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => $this->apiVersion,
+            'trakt-api-key' => $this->client_id
+        ])->acceptJson()
+            ->withToken($this->traktConfig['config']['access_token'])
+            ->get("{$this->apiUrl}/shows/{$id}/seasons/{$seasons}/episodes/{$episode}?extended=full")
+            ->throw()->json();
+    }
+
     public function search($type, $item)
     {
 
@@ -20,7 +65,7 @@ class TraktSearchService extends TraktApiService
             'trakt-api-key' => $this->client_id
         ])->acceptJson()
             ->withToken($this->traktConfig['config']['access_token'])
-            ->get("{$this->searchUrl}/{$type}?query=" . $item->getEncoded() . "/&extended=full")
+            ->get("{$this->searchUrl}/{$type}?query=" . $item . "/?extended=full")
             ->throw()->json();
     }
 

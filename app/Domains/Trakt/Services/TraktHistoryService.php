@@ -2,16 +2,33 @@
 
 namespace App\Domains\Trakt\Services;
 
-use Illuminate\Support\Facades\Http;
-use App\Domains\Common\Models\Episode;
-use App\Domains\Common\Models\Movie;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use App\Domains\Trakt\Models\Trakt;
+use App\Domains\Common\Models\Movie;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
+use App\Domains\Common\Models\Episode;
 
 
 class TraktHistoryService extends TraktApiService
 {
+
+    public function unsync($request)
+    {
+
+        //See if we need to refresh the token before getting history
+
+        $this->refreshToken();
+        $response = Http::retry(3, 1000)->withHeaders([
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => $this->apiVersion,
+            'trakt-api-key' => $this->client_id
+        ])->acceptJson()->withToken($this->traktConfig['config']['access_token'])->post($this->syncUrl . "/remove", $request)->throw()->json();
+
+
+        return $response;
+    }
 
     public function sync($request)
     {

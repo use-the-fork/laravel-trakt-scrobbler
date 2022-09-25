@@ -123,9 +123,6 @@ class NetflixService extends StreamingService
             $page->navigate(NetflixConstant::API_URL . "/{$this->BUILD_IDENTIFIER}/viewingactivity?languages=en-US&authURL={$this->AUTH_URL}&pg={$currentPage}")->waitForNavigation();
             $history = json_decode($page->evaluate('document.documentElement.innerText')->getReturnValue());
 
-            //dd($history);
-            //dump(NetflixConstant::API_URL . "/{$this->BUILD_IDENTIFIER}/viewingactivity?languages=en-US&authURL={$this->AUTH_URL}&pg={$currentPage}");
-
             if (
                 empty($history) ||
                 count($history->viewedItems) <= 0

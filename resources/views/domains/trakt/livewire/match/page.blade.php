@@ -57,7 +57,7 @@
 
                         <div class="ml-2">
                             <label for="minimumPercentageWatched">Minimum Percentage Watched</label>
-                            <input type="text" class="form-control form-control-sm" id="minimumPercentageWatched" value="75">
+                            <input type="text" class="form-control form-control-sm" id="minimumPercentageWatched" wire:model="minWatched">
                         </div>
 
                         <div class="ml-2"><label>Select</label>
@@ -69,7 +69,7 @@
                         </div>
 
                         <form class="d-flex">
-                            <button class="btn btn-outline-success" id='sync' type="submit">Sync</button>
+                            <button class="btn btn-outline-success" id='sync' type="submit">Sync All Selected</button>
                         </form>
                     </div>
                 </div>

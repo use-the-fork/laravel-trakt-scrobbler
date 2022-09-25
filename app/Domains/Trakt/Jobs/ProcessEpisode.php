@@ -46,7 +46,7 @@ class ProcessEpisode implements ShouldQueue
             !isset($this->show->traktable->trakt_id)
         ) {
 
-            $matches = $traktSearchService->search('show', $this->episode->show);
+            $matches = $traktSearchService->search('show', $this->episode->show->getEncoded());
 
             if (
                 count($matches) === 1

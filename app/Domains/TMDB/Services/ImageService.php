@@ -11,7 +11,7 @@ class ImageService
     {
         $api_key = env('TMDB_API');
 
-        $response = Http::acceptJson()->get("https://api.themoviedb.org/3/movie/{$id}/images?api_key={$api_key}")->throw()->json();
+        $response = Http::acceptJson()->get("https://api.themoviedb.org/3/movie/{$id}/images?api_key={$api_key}")->json();
 
         return $response;
     }
@@ -20,7 +20,7 @@ class ImageService
     {
         $api_key = env('TMDB_API');
 
-        $response = Http::acceptJson()->get("https://api.themoviedb.org/3/tv/{$id}/season/{$season}/episode/{$number}/images?api_key={$api_key}")->throw()->json();
+        $response = Http::acceptJson()->get("https://api.themoviedb.org/3/tv/{$id}/season/{$season}/episode/{$number}/images?api_key={$api_key}")->json();
 
         return $response;
     }
@@ -29,7 +29,7 @@ class ImageService
     {
         $api_key = env('TMDB_API');
 
-        $response = Http::acceptJson()->get("https://api.themoviedb.org/3/tv/{$id}/images?api_key={$api_key}")->throw()->json();
+        $response = Http::acceptJson()->get("https://api.themoviedb.org/3/tv/{$id}/images?api_key={$api_key}")->json();
 
         return $response;
     }

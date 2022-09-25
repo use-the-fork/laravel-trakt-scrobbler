@@ -4,6 +4,7 @@ namespace App\Domains\Netflix\Jobs;
 
 use App\Domains\Common\Models\Movie;
 use App\Domains\Netflix\Services\NetflixService;
+use App\Domains\Trakt\Jobs\ProcessMovie;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,7 +16,7 @@ class ProcessNetflixMovie implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-	public $movie;
+    public $movie;
 
     /**
      * Create a new job instance.
@@ -24,7 +25,7 @@ class ProcessNetflixMovie implements ShouldQueue
      */
     public function __construct(Movie $movie)
     {
-		$this->movie = $movie;
+        $this->movie = $movie;
     }
 
     /**
@@ -35,17 +36,20 @@ class ProcessNetflixMovie implements ShouldQueue
     public function handle()
     {
         $service = new NetflixService();
-		$item = $service->getItem($this->movie->item_id);
+        $item = $service->getItem($this->movie->item_id);
 
-		if(
-			!isset($item->video)
-		){
-			return;
-		}
+        if (
+            !isset($item->video)
+        ) {
+            return;
+        }
 
-		//Update the item with the meta data
-		$this->movie->year = $item->video->year;
-		$this->movie->released_at = Carbon::parse($service->convertUnixDate($item->video->start));
-		$this->movie->save();
+        //Update the item with the meta data
+        $this->movie->year = $item->video->year;
+        $this->movie->released_at = Carbon::parse($service->convertUnixDate($item->video->start));
+        $this->movie->save();
+
+        //Dispatch a Trakt Search Job
+        dispatch(new ProcessMovie($this->movie));
     }
 }

@@ -22,7 +22,7 @@
                 </div>
                 <div class="card-footer">
                     <div class="progress" style="height: 20px;">
-                        <div class="progress-bar" role="progressbar" style="width: {{ $single['service']['progress'] }}%;" aria-valuenow="{{ $single['service']['progress'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar" role="progressbar" style="width: {{ $single['service']['progress'] }}%;" aria-valuenow="{{ $single['service']['progress'] }}" aria-valuemin="0" aria-valuemax="100">{{ $single['service']['progress'] }}%</div>
                     </div>
                 </div>
             </div>
@@ -39,6 +39,8 @@
                 @endif
                 <span class="badge rounded-pill bg-info mt-3">Score: {{ $single['trakt']['score'] }}</span>
                 <span class="badge rounded-pill bg-primary mt-3">Type: {{ $single['trakt']['match_type'] }}</span>
+
+                <button class="btn btn-outline-success mt-3" type="button" wire:click="forceSync">Sync</button>
             </div>
         </div>
         <div class="col">
@@ -72,7 +74,7 @@
         </div>
         <div class="col-1"></div>
     </div>
-    <div class="modal fade" id="modal_{{ $item['id'] }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modal_{{ $item['id'] }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -82,12 +84,18 @@
                 <div class="modal-body">
                     <div>
                         <label class="form-label">Enter the correct Trakt URL for {{ $single['service']['title'] }} {{ $single['service']['intro'] }} in the field below.</label>
-                        <input type="text" class="form-control">
+                        <label class="form-label"><a href="{{ $single['url'] }}" target="_blank">{{ $single['url'] }}</a></label>
+                        <input type="text" class="form-control" wire:model="newMatch">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-primary" wire:click="fixMatch">
+                        <div wire:loading>
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        </div>
+                        Save changes
+                    </button>
                 </div>
             </div>
         </div>

@@ -28,7 +28,6 @@ return new class extends Migration
             $table->dropColumn('service');
             $table->dropColumn('trakt');
             $table->dropColumn('watched_at');
-            $table->dropColumn('progress');
         });
 
         Schema::table('episodes', function (Blueprint $table) {

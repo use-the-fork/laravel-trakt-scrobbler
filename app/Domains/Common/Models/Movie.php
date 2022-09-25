@@ -41,7 +41,7 @@ class Movie extends Model
     {
         if (
             $this->traktable &&
-            $this->traktable['ids']['slug']
+            isset($this->traktable['ids']['slug'])
         ) {
             return "https://trakt.tv/movies/" . $this->traktable['ids']['slug'];
         } else {
