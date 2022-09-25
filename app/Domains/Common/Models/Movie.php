@@ -2,18 +2,15 @@
 
 namespace App\Domains\Common\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Model;
+use App\Domains\Common\Models\Traits\HasMedia;
+use App\Domains\Common\Models\Traits\HasTrakt;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Movie extends Model
 {
-    use HasFactory;
-
-    protected $casts = [
-        'trakt'   => 'array',
-        'service' => 'array',
-    ];
+    use HasFactory, HasMedia, HasTrakt;
 
     protected $fillable = [
         'service_id',
@@ -22,9 +19,6 @@ class Movie extends Model
         'year',
         'watched_at',
         'progress',
-        'trakt',
-        'service',
-        'synced',
         'released_at',
     ];
 
@@ -36,6 +30,23 @@ class Movie extends Model
     public function getSlug(): string
     {
         return Str::slug("{$this->title}");
+    }
+
+    public function getTraktType(): string
+    {
+        return 'movies';
+    }
+
+    public function getTraktURL(): string
+    {
+        if (
+            $this->traktable &&
+            $this->traktable['ids']['slug']
+        ) {
+            return "https://trakt.tv/movies/" . $this->traktable['ids']['slug'];
+        } else {
+            return 'https://trakt.tv/search';
+        }
     }
 
     public function service()

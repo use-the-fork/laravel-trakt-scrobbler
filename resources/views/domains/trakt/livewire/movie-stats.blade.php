@@ -53,12 +53,6 @@
                                 <p class="mb-1">{{ $stats['match-type-none'] }}</p>
                             </td>
                         </tr>
-                        <tr>
-                            <td class="font-weight-normal align-middle">No Meta</td>
-                            <td class="float-end font-weight-normal">
-                                <p class="mb-1">{{ $stats['match-type-no-meta'] }}</p>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>

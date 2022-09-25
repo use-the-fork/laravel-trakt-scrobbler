@@ -23,7 +23,6 @@ class ProcessNetflixHistory implements ShouldQueue
      */
     public function __construct()
     {
-
     }
 
     /**
@@ -34,7 +33,6 @@ class ProcessNetflixHistory implements ShouldQueue
     public function handle()
     {
         $service = new NetflixService();
-		$service->loadHistoryItems();
-
+        $service->loadHistoryItems(10);
     }
 }

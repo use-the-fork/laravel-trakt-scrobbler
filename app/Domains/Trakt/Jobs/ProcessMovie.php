@@ -3,14 +3,15 @@
 namespace App\Domains\Trakt\Jobs;
 
 use Illuminate\Bus\Queueable;
+use App\Domains\Trakt\Models\Trakt;
 use App\Domains\Common\Models\Movie;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Domains\Trakt\Enums\TraktMatchType;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use App\Domains\Trakt\Enums\TraktMatchType;
-use App\Domains\Trakt\Services\TraktSearchService;
 use Spatie\RateLimitedMiddleware\RateLimited;
+use App\Domains\Trakt\Services\TraktSearchService;
 
 class ProcessMovie implements ShouldQueue
 {
@@ -26,7 +27,6 @@ class ProcessMovie implements ShouldQueue
     public function __construct(Movie $movie)
     {
         $this->movie = $movie;
-        $this->onQueue('trakt-get');
     }
 
     /**
@@ -69,12 +69,12 @@ class ProcessMovie implements ShouldQueue
         if (app()->runningInConsole()) {
             echo "\nNo match for: {$this->movie->title}";
         }
+        $trakt = new Trakt();
+        $trakt->match_type = TraktMatchType::NONE;
+        $trakt->score = 0;
+        $trakt->status = 0;
 
-        $append = [];
-        $append['match-type'] = TraktMatchType::NONE;
-
-        $this->movie->trakt = $append;
-        return $this->movie->save();
+        return $this->movie->saveTrakt($trakt);
     }
 
     private function append($match, $matchType)
@@ -84,19 +84,23 @@ class ProcessMovie implements ShouldQueue
             echo "\nFound match: {$this->movie->title} ({$matchType})";
         }
 
-        $append = [];
-        $append['ids'] = $match['movie']['ids'];
-        $append['match-type'] = $matchType;
-        $append['score'] = $match['score'];
-        $append['info']['title'] = $match['movie']['title'];
-        $append['info']['year'] = $match['movie']['year'];
-        $append['info']['tagline'] = $match['movie']['tagline'];
-        $append['info']['overview'] = $match['movie']['overview'];
-        $append['info']['released'] = $match['movie']['released'];
-        $append['info']['trailer'] = $match['movie']['trailer'];
-        $append['info']['homepage'] = $match['movie']['homepage'];
+        $trakt = new Trakt();
 
-        $this->movie->trakt = $append;
-        return $this->movie->save();
+        $trakt->trakt_id = isset($match['movie']['ids']['trakt']) ? $match['movie']['ids']['trakt'] : null;
+        $trakt->match_type = $matchType;
+        $trakt->ids = isset($match['movie']['ids']) ? $match['movie']['ids'] : null;
+        $trakt->information = [
+            'title' => $match['movie']['title'],
+            'year' => $match['movie']['year'],
+            'tagline' => $match['movie']['tagline'],
+            'overview' => $match['movie']['overview'],
+            'released' => $match['movie']['released'],
+            'trailer' => $match['movie']['trailer'],
+            'homepage' => $match['movie']['homepage'],
+        ];
+        $trakt->score = isset($match['score']) ? intval($match['score']) : 0;
+        $trakt->status = 0;
+
+        return $this->movie->saveTrakt($trakt);
     }
 }

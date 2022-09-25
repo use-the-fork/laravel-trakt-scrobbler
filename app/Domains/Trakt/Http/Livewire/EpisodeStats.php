@@ -10,34 +10,33 @@ use App\Domains\Trakt\Enums\TraktMatchType;
 class EpisodeStats extends Component
 {
 
-
     public $stats = [
         'total' => 0,
         'synced' => 0,
         'not-synced' => 0,
         'synced-percent' => 0,
+        'match-type-service' => 0,
+        'match-type-single' => 0,
+        'match-type-compare' => 0,
+        'match-type-none' => 0,
     ];
 
     public function mount()
     {
-        $episode = Episode::all();
 
+        foreach (Episode::all() as $episode) {
+            $this->stats['total']++;
+            $this->stats['synced'] = $this->stats['synced'] + $episode->traktable()->where('status', 3)->count();
 
-        $this->stats['total'] = $episode->count();
-        $this->stats['synced'] = $episode->where('synced', 1)->count();
-        $this->stats['not-synced'] = $episode->where('synced', 0)->count();
-        $this->stats['synced-percent'] = 100 - round(($this->stats['not-synced'] / $this->stats['synced']) * 100);
+            $this->stats['not-synced'] = $this->stats['not-synced'] + $episode->traktable()->where('status', 0)->count();
 
-        $this->stats['match-type-service'] = $episode->where('synced', 0)->where('trakt.match-type', TraktMatchType::SERVICE)->count();
-        $this->stats['match-type-single'] = $episode->where('synced', 0)->where('trakt.match-type', TraktMatchType::SINGLE)->count();
-        $this->stats['match-type-compare'] = $episode->where('synced', 0)->where('trakt.match-type', TraktMatchType::COMPARED)->count();
-        $this->stats['match-type-none'] = $episode->where('synced', 0)->where('trakt.match-type', TraktMatchType::NONE)->count();
-        $this->stats['match-type-no-meta'] = $episode->where('synced', 0)->where('synced', 0)->filter(function ($value, $key) {
-            return empty($value['trakt']) || !isset($value['trakt']['ids']);
-        })->count();
+            $this->stats['match-type-service'] = $this->stats['match-type-service'] +  $episode->traktable()->where('status', 0)->where('match_type', TraktMatchType::SERVICE)->count();
+            $this->stats['match-type-single'] = $this->stats['match-type-single'] +  $episode->traktable()->where('status', 0)->where('match_type', TraktMatchType::SINGLE)->count();
+            $this->stats['match-type-compare'] = $this->stats['match-type-compare'] +  $episode->traktable()->where('status', 0)->where('match_type', TraktMatchType::COMPARED)->count();
+            $this->stats['match-type-none'] = $this->stats['match-type-none'] +  $episode->traktable()->where('status', 0)->where('match_type', TraktMatchType::NONE)->count();
+        }
 
-        //dd($episode->where('synced', 1)->count());
-        //dd($episode->where('trakt.')->count());
+        $this->stats['synced-percent'] = 100 - round(($this->stats['not-synced'] / ($this->stats['not-synced'] + $this->stats['synced'])) * 100);
     }
 
     public function render()

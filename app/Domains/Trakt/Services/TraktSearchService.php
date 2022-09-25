@@ -20,7 +20,7 @@ class TraktSearchService extends TraktApiService
             'trakt-api-key' => $this->client_id
         ])->acceptJson()
             ->withToken($this->traktConfig['config']['access_token'])
-            ->get("{$this->searchUrl}/{$type}?query=" . $item->getEncoded() . "&extended=full")
+            ->get("{$this->searchUrl}/{$type}?query=" . $item->getEncoded() . "/&extended=full")
             ->throw()->json();
     }
 
@@ -31,7 +31,7 @@ class TraktSearchService extends TraktApiService
         $this->refreshToken();
 
         if (app()->runningInConsole()) {
-            echo "\n{$this->showUrl}/{$id}/seasons/{$season}/episodes/{$episode}&extended=full\n";
+            echo "\n{$this->showUrl}/{$id}/seasons/{$season}/episodes/{$episode}";
         }
 
         return Http::retry(3, 1000)->withHeaders([
@@ -40,7 +40,7 @@ class TraktSearchService extends TraktApiService
             'trakt-api-key' => $this->client_id
         ])->acceptJson()
             ->withToken($this->traktConfig['config']['access_token'])
-            ->get("{$this->showUrl}/{$id}/seasons/{$season}/episodes/{$episode}&extended=full")
+            ->get("{$this->showUrl}/{$id}/seasons/{$season}/episodes/{$episode}")
             ->throw()->json();
     }
 

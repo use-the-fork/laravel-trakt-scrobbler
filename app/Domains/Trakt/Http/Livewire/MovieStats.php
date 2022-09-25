@@ -15,29 +15,27 @@ class MovieStats extends Component
         'synced' => 0,
         'not-synced' => 0,
         'synced-percent' => 0,
+        'match-type-service' => 0,
+        'match-type-single' => 0,
+        'match-type-compare' => 0,
+        'match-type-none' => 0,
     ];
 
     public function mount()
     {
-        $movies = Movie::all();
+        foreach (Movie::all() as $movie) {
+            $this->stats['total']++;
+            $this->stats['synced'] = $this->stats['synced'] + $movie->traktable()->where('status', 3)->count();
 
+            $this->stats['not-synced'] = $this->stats['not-synced'] + $movie->traktable()->where('status', 0)->count();
 
-        $this->stats['total'] = $movies->count();
-        $this->stats['synced'] = $movies->where('synced', 1)->count();
-        $this->stats['not-synced'] = $movies->where('synced', 0)->count();
-        $this->stats['synced-percent'] = 100 - round(($this->stats['not-synced'] / $this->stats['synced']) * 100);
+            $this->stats['match-type-service'] = $this->stats['match-type-service'] +  $movie->traktable()->where('status', 0)->where('match_type', TraktMatchType::SERVICE)->count();
+            $this->stats['match-type-single'] = $this->stats['match-type-single'] +  $movie->traktable()->where('status', 0)->where('match_type', TraktMatchType::SINGLE)->count();
+            $this->stats['match-type-compare'] = $this->stats['match-type-compare'] +  $movie->traktable()->where('status', 0)->where('match_type', TraktMatchType::COMPARED)->count();
+            $this->stats['match-type-none'] = $this->stats['match-type-none'] +  $movie->traktable()->where('status', 0)->where('match_type', TraktMatchType::NONE)->count();
+        }
 
-        $this->stats['match-type-service'] = $movies->where('synced', 0)->where('trakt.match-type', TraktMatchType::SERVICE)->count();
-        $this->stats['match-type-single'] = $movies->where('synced', 0)->where('trakt.match-type', TraktMatchType::SINGLE)->count();
-        $this->stats['match-type-compare'] = $movies->where('synced', 0)->where('trakt.match-type', TraktMatchType::COMPARED)->count();
-        $this->stats['match-type-none'] = $movies->where('synced', 0)->where('trakt.match-type', TraktMatchType::NONE)->count();
-
-        $this->stats['match-type-no-meta'] = $movies->where('synced', 0)->filter(function ($value, $key) {
-            return empty($value['trakt']) || !isset($value['trakt']['ids']);
-        })->count();
-
-        //dd($movies->where('synced', 1)->count());
-        //dd($movies->where('trakt.')->count());
+        $this->stats['synced-percent'] = 100 - round(($this->stats['not-synced'] / ($this->stats['not-synced'] + $this->stats['synced'])) * 100);
     }
 
     public function render()

@@ -2,18 +2,18 @@
 
 namespace App\Domains\Common\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Model;
+use App\Domains\Common\Models\Traits\HasMedia;
+use App\Domains\Common\Models\Traits\HasTrakt;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Episode extends Model
 {
-    use HasFactory;
-
-    protected $casts = [
-        'trakt'   => 'array',
-        'service' => 'array',
-    ];
+    use
+        HasFactory,
+        HasMedia,
+        HasTrakt;
 
     protected $fillable = [
         'service_id',
@@ -22,14 +22,29 @@ class Episode extends Model
         'year',
         'watched_at',
         'progress',
-        'trakt',
-        'service',
-        'sync',
         'released_at',
         'season',
         'number',
     ];
 
+    public function getTraktType(): string
+    {
+        return 'episodes';
+    }
+
+    public function getTraktURL(): string
+    {
+
+
+        if (
+            $this->show->traktable &&
+            $this->show->traktable['ids']['slug']
+        ) {
+            return "https://trakt.tv/shows/" . $this->show->traktable['ids']['slug'];
+        } else {
+            return 'https://trakt.tv/search';
+        }
+    }
 
     public function getEncoded(): string
     {

@@ -150,10 +150,6 @@ class NetflixService extends StreamingService
 
     public function parseHistorydata($item)
     {
-
-        dump($item);
-
-
         if (
             isset($item->series)
         ) {

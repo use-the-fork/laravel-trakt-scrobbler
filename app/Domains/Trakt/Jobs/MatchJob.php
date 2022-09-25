@@ -4,6 +4,7 @@ namespace App\Domains\Trakt\Jobs;
 
 use App\Domains\Common\Models\Episode;
 use App\Domains\Common\Models\Movie;
+use App\Domains\Trakt\Models\Trakt;
 use App\Domains\Trakt\Services\TraktHistoryService;
 use App\Domains\Trakt\Services\TraktSearchService;
 use Carbon\Carbon;
@@ -33,6 +34,7 @@ class MatchJob implements ShouldQueue
      */
     public function handle()
     {
+
         foreach ($this->getMovies() as $count => $movie) {
             dispatch(new ProcessMovie($movie));
         }
@@ -44,11 +46,15 @@ class MatchJob implements ShouldQueue
 
     private function getMovies()
     {
-        return Movie::where('synced', 0)->whereNull('trakt')->get();
+        return Movie::get()->filter(function ($value, $key) {
+            return !isset($value->traktable->exists) || empty($value->traktable->exists) || empty($value->traktable);
+        })->all();
     }
 
     private function getEpisodes()
     {
-        return Episode::where('synced', 0)->whereNull('trakt')->whereNotNull('number')->get();
+        return Episode::whereNotNull('number')->get()->filter(function ($value, $key) {
+            return !isset($value->traktable->exists) || empty($value->traktable->exists) || empty($value->traktable);
+        })->all();
     }
 }

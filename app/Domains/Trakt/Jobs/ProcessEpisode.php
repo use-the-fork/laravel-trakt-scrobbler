@@ -3,6 +3,8 @@
 namespace App\Domains\Trakt\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Carbon;
+use App\Domains\Trakt\Models\Trakt;
 use App\Domains\Common\Models\Movie;
 use App\Domains\Common\Models\Episode;
 use Illuminate\Queue\SerializesModels;
@@ -28,7 +30,6 @@ class ProcessEpisode implements ShouldQueue
     {
         $this->episode = $episode;
         $this->show = $episode->show;
-        $this->onQueue('trakt-get');
     }
 
     /**
@@ -42,7 +43,7 @@ class ProcessEpisode implements ShouldQueue
         $traktSearchService = (new TraktSearchService());
 
         if (
-            !isset($this->show->trakt['ids']['trakt'])
+            !isset($this->show->traktable->trakt_id)
         ) {
 
             $matches = $traktSearchService->search('show', $this->episode->show);
@@ -72,11 +73,11 @@ class ProcessEpisode implements ShouldQueue
         }
 
         if (
-            !empty($this->show->trakt) &&
-            isset($this->show->trakt['ids']['trakt'])
+            !empty($this->show->traktable->trakt_id) &&
+            isset($this->show->traktable->trakt_id)
         ) {
 
-            $match = $traktSearchService->searchEpisode($this->show->trakt['ids']['trakt'], $this->episode->season, $this->episode->number);
+            $match = $traktSearchService->searchEpisode($this->show->traktable->trakt_id, $this->episode->season, $this->episode->number);
             if (
                 !empty($match)
             ) {
@@ -95,14 +96,15 @@ class ProcessEpisode implements ShouldQueue
     {
 
         if (app()->runningInConsole()) {
-            echo "\nNo match for: {$this->show->title}";
+            echo "\nNo match for: {$this->show->title} ({$this->show->id})";
         }
 
-        $append = [];
-        $append['match-type'] = TraktMatchType::NONE;
+        $trakt = new Trakt();
+        $trakt->match_type = TraktMatchType::NONE;
+        $trakt->score = 0;
+        $trakt->status = 0;
 
-        $this->show->trakt = $append;
-        return $this->show->save();
+        return $this->show->saveTrakt($trakt);
     }
 
     private function appendEpisode($match, $matchType)
@@ -112,13 +114,18 @@ class ProcessEpisode implements ShouldQueue
             echo "\nFound match: {$this->show->title} / {$this->episode->title} ({$matchType})";
         }
 
-        $append = [];
-        $append['ids'] = $match['ids'];
-        $append['match-type'] = $matchType;
-        $append['info']['title'] = $match['title'];
+        $trakt = new Trakt();
 
-        $this->episode['trakt'] = $append;
-        $this->episode->save();
+        $trakt->trakt_id = isset($match['ids']['trakt']) ? $match['ids']['trakt'] : null;
+        $trakt->match_type = $matchType;
+        $trakt->ids = isset($match['ids']) ? $match['ids'] : null;
+        $trakt->information = [
+            'title' => $match['title']
+        ];
+        $trakt->score = 0;
+        $trakt->status = 0;
+
+        $this->episode->saveTrakt($trakt);
     }
 
     private function appendShow($match, $matchType)
@@ -128,22 +135,21 @@ class ProcessEpisode implements ShouldQueue
             echo "\nFound match: {$this->show->title} ({$matchType})";
         }
 
-        $append = [];
-        $append['ids'] = $match['show']['ids'];
-        $append['match-type'] = $matchType;
-        $append['score'] = $match['score'];
-        $append['info']['title'] = $match['show']['title'];
-        $append['info']['year'] = $match['show']['year'];
-        $append['info']['overview'] = $match['show']['overview'];
-        $append['info']['trailer'] = $match['show']['trailer'];
-        $append['info']['homepage'] = $match['show']['homepage'];
+        $trakt = new Trakt();
 
-        if (isset($match['show']['year'])) {
-            $this->show->year = $match['show']['year'];
-        }
+        $trakt->trakt_id = isset($match['show']['ids']['trakt']) ? $match['show']['ids']['trakt'] : null;
+        $trakt->match_type = $matchType;
+        $trakt->ids = isset($match['show']['ids']) ? $match['show']['ids'] : null;
+        $trakt->information = [
+            'title' => $match['show']['title'],
+            'year' => $match['show']['year'],
+            'overview' => $match['show']['overview'],
+            'trailer' => $match['show']['trailer'],
+            'homepage' => $match['show']['homepage'],
+        ];
+        $trakt->score = isset($match['score']) ? intval($match['score']) : 0;
+        $trakt->status = 0;
 
-        $this->show['trakt'] = $append;
-
-        $this->show->save();
+        $this->show->saveTrakt($trakt);
     }
 }

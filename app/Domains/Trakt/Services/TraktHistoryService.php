@@ -35,9 +35,8 @@ class TraktHistoryService extends TraktApiService
 
         $theUrl = Str::of("{$this->syncUrl}/");
         if ($type !== null) {
-            $theUrl->append("{$type}/{$id}/");
+            $theUrl = $theUrl->append("{$type}/{$id}/");
         }
-
         $theUrl = $theUrl->append("?page={$page}")->append("&limit={$limit}");
 
         if ($startDate !== null) {

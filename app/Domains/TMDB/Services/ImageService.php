@@ -16,6 +16,24 @@ class ImageService
         return $response;
     }
 
+    public static function getEpisodeMedia($id, $season, $number)
+    {
+        $api_key = env('TMDB_API');
+
+        $response = Http::acceptJson()->get("https://api.themoviedb.org/3/tv/{$id}/season/{$season}/episode/{$number}/images?api_key={$api_key}")->throw()->json();
+
+        return $response;
+    }
+
+    public static function getShowMedia($id)
+    {
+        $api_key = env('TMDB_API');
+
+        $response = Http::acceptJson()->get("https://api.themoviedb.org/3/tv/{$id}/images?api_key={$api_key}")->throw()->json();
+
+        return $response;
+    }
+
     public static function getImageMeta($imageObject)
     {
 
@@ -29,6 +47,10 @@ class ImageService
 
         if (isset($imageObject['posters'])) {
             $imageObject['posters'] = collect($imageObject['posters'])->sortBy([['vote_count', 'desc'], ['vote_average', 'desc']])->first();
+        }
+
+        if (isset($imageObject['stills'])) {
+            $imageObject['stills'] = collect($imageObject['stills'])->sortBy([['vote_count', 'desc'], ['vote_average', 'desc']])->first();
         }
 
         return $imageObject;

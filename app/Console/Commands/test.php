@@ -3,7 +3,10 @@
 namespace App\Console\Commands;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Illuminate\Console\Command;
+use App\Domains\Common\Models\Show;
+use App\Domains\Trakt\Models\Trakt;
 use App\Domains\Common\Models\Movie;
 use App\Domains\Trakt\Jobs\MatchJob;
 use Illuminate\Support\Facades\Cache;
@@ -11,6 +14,7 @@ use App\Domains\Common\Models\Episode;
 use App\Domains\Common\Models\Service;
 use App\Domains\Trakt\Jobs\SyncHistory;
 use App\Domains\Trakt\Jobs\ProcessMovie;
+use App\Domains\Trakt\Jobs\SyncTraktItem;
 use App\Domains\Trakt\Jobs\ProcessEpisode;
 use App\Domains\Trakt\Jobs\SyncWatchedHistory;
 use App\Domains\Netflix\Jobs\ProcessNetflixMeta;
@@ -44,6 +48,85 @@ class test extends Command
      */
     public function handle()
     {
+
+
+        $netflix = new SyncTraktItem(Trakt::find(2));
+        $netflix->handle();
+
+        // $service->loadHistoryItems(10);
+        // dd(1);
+
+        //$netflix = (new ProcessEpisode(Episode::find(1)));
+        //$netflix->handle();
+        //dd(1);
+
+        $netflix = (new MatchJob());
+        $netflix->handle();
+        dd(1);
+
+        foreach (Show::get() as $movie) {
+
+            dump($movie);
+
+            if (isset($movie['trakt'])) {
+
+                $trakt = new Trakt();
+                $trakt->trakt_id = isset($movie['trakt']['ids']['trakt']) ? $movie['trakt']['ids']['trakt'] : null;
+                $trakt->match_type = $movie['trakt']['match-type'];
+                $trakt->ids = isset($movie['trakt']['ids']) ? $movie['trakt']['ids'] : null;
+                $trakt->information = isset($movie['trakt']['info']) ? $movie['trakt']['info'] : null;
+                $trakt->score = isset($movie['trakt']['score']) ? intval($movie['trakt']['score']) : 0;
+                $trakt->sync_id = isset($movie['trakt']['sync']['id']) ? $movie['trakt']['sync']['id'] : null;
+                $trakt->watched_at = isset($movie['trakt']['sync']['watched_at']) ? Carbon::parse($movie['trakt']['sync']['watched_at']) : null;
+                $trakt->status = !empty($trakt->sync_id) ? 2 : 0;
+
+                $t = $movie->saveTrakt($trakt);
+            }
+        }
+        dd(1);
+
+        foreach (Episode::get() as $movie) {
+
+            dump($movie);
+
+            if (isset($movie['trakt'])) {
+
+                $trakt = new Trakt();
+                $trakt->trakt_id = isset($movie['trakt']['ids']['trakt']) ? $movie['trakt']['ids']['trakt'] : null;
+                $trakt->match_type = $movie['trakt']['match-type'];
+                $trakt->ids = isset($movie['trakt']['ids']) ? $movie['trakt']['ids'] : null;
+                $trakt->information = isset($movie['trakt']['info']) ? $movie['trakt']['info'] : null;
+                $trakt->score = isset($movie['trakt']['score']) ? intval($movie['trakt']['score']) : 0;
+                $trakt->sync_id = isset($movie['trakt']['sync']['id']) ? $movie['trakt']['sync']['id'] : null;
+                $trakt->watched_at = isset($movie['trakt']['sync']['watched_at']) ? Carbon::parse($movie['trakt']['sync']['watched_at']) : null;
+                $trakt->status = !empty($trakt->sync_id) ? 2 : 0;
+
+                $t = $movie->saveTrakt($trakt);
+            }
+        }
+        dd(1);
+
+
+        //Move all trakt data to new Model
+        foreach (Movie::get() as $movie) {
+
+            //dump($movie);
+
+            $trakt = new Trakt();
+            $trakt->trakt_id = isset($movie['trakt']['ids']['trakt']) ? $movie['trakt']['ids']['trakt'] : null;
+            $trakt->match_type = $movie['trakt']['match-type'];
+            $trakt->ids = isset($movie['trakt']['ids']) ? $movie['trakt']['ids'] : null;
+            $trakt->information = isset($movie['trakt']['info']) ? $movie['trakt']['info'] : null;
+            $trakt->score = isset($movie['trakt']['score']) ? intval($movie['trakt']['score']) : 0;
+            $trakt->sync_id = isset($movie['trakt']['sync']['id']) ? $movie['trakt']['sync']['id'] : null;
+            $trakt->watched_at = isset($movie['trakt']['sync']['watched_at']) ? Carbon::parse($movie['trakt']['sync']['watched_at']) : null;
+            $trakt->status = !empty($trakt->sync_id) ? 2 : 0;
+
+            $t = $movie->saveTrakt($trakt);
+        }
+
+        dd(1);
+
 
         $t = new SyncHistoryFromTrakt();
         $t->handle();
@@ -104,10 +187,10 @@ class test extends Command
 
     private function testMovie()
     {
-        $netflix = (new ProcessNetflixMeta());
+        //$netflix = (new ProcessNetflixMeta());
         //$netflix = (new MatchJob());
         // $netflix = (new ProcessMovie(Movie::find(6)));
-        $netflix->handle();
+        //$netflix->handle();
         dd(1);
 
         //$netflix = (new ProcessNetflixMovie(Movie::find(3)));

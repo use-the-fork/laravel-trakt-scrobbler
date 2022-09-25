@@ -26,7 +26,6 @@ class ProcessNetflixEpisode implements ShouldQueue
     public function __construct(Episode $episode)
     {
         $this->episode = $episode;
-        $this->onQueue('service');
     }
 
     /**
