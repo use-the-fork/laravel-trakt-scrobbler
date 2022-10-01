@@ -24,6 +24,7 @@ use App\Domains\Netflix\Jobs\ProcessNetflixMovie;
 use App\Domains\Trakt\Services\TraktSearchService;
 use App\Domains\Netflix\Jobs\ProcessNetflixEpisode;
 use App\Domains\Netflix\Jobs\ProcessNetflixHistory;
+use App\Domains\AmazonPrime\Services\AmazonPrimeService;
 
 class test extends Command
 {
@@ -49,6 +50,11 @@ class test extends Command
     public function handle()
     {
 
+
+        $amazon = new AmazonPrimeService();
+        $amazon->loadHistoryItems(1);
+
+        dd(2);
 
         $netflix = new SyncTraktItem(Trakt::find(2));
         $netflix->handle();

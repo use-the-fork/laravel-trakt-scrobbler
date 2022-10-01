@@ -195,8 +195,9 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-		App\Domains\Netflix\Providers\NetflixServiceProvider::class,
-		App\Domains\Trakt\Providers\TraktServiceProvider::class,
+        App\Domains\AmazonPrime\Providers\ServiceProvider::class,
+        App\Domains\Netflix\Providers\NetflixServiceProvider::class,
+        App\Domains\Trakt\Providers\TraktServiceProvider::class,
 
     ],
 
