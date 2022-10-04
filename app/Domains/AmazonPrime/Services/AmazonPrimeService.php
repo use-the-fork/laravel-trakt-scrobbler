@@ -4,6 +4,7 @@ namespace App\Domains\AmazonPrime\Services;
 
 use Carbon\Carbon;
 use HeadlessChromium\Page;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use App\Domains\Common\Models\Show;
 use App\Domains\Common\Models\Movie;
@@ -120,10 +121,13 @@ class AmazonPrimeService extends StreamingService
         ]));
 
         $historyItems = collect([]);
+        $nextToken = null;
 
         for ($x = 0; $x <= $pagesToSync; $x++) {
-            $page->navigate("https://www.amazon.com/gp/video/api/getWatchHistorySettingsPage?widgetArgs%7B%22startIndex%22%3A{$x}%7D")->waitForNavigation();
+
+            $page->navigate("https://www.amazon.com/gp/video/api/getWatchHistorySettingsPage?widgetArgs=%7B{$nextToken}%7D")->waitForNavigation();
             $history = json_decode($page->evaluate('document.body.innerText')->getReturnValue(), TRUE);
+            $nextToken = $this->getNextToken($history);
 
             if (isset($history['widgets'])) {
                 foreach ($history['widgets'] as $d) {
@@ -150,12 +154,17 @@ class AmazonPrimeService extends StreamingService
 
                                     //If the watched at date is less then the last sync then break;
                                     if ($historyItem['watchedAt']->lessThan($lastSync)) {
-                                        break;
+                                        //break;
                                     }
                                 }
                         }
                     }
                 }
+            }
+
+
+            if (!$nextToken) {
+                break;
             }
         }
 
@@ -232,6 +241,10 @@ class AmazonPrimeService extends StreamingService
                 'item_id' => $meta['id']
             ]);
 
+            if ($theMovie->exists) {
+                return;
+            }
+
             $theMovie->title = $meta['title'];
             $theMovie->watched_at = $meta['watchedAt'];
             $theMovie->progress = round($meta['percentWatched']);
@@ -254,6 +267,7 @@ class AmazonPrimeService extends StreamingService
                 'item_id' => $meta['id']
             ]);
 
+
             $theEpisode->title = $meta['episodeTitle'];
             $theEpisode->watched_at = $meta['watchedAt'];
             $theEpisode->progress = round($meta['percentWatched']);
@@ -266,6 +280,16 @@ class AmazonPrimeService extends StreamingService
 
             dispatch(new ProcessEpisode($theEpisode));
         }
+    }
+    private function getNextToken($history)
+    {
+        foreach (Arr::dot($history) as $index => $token) {
+            if (Str::of($index)->endsWith(".nextToken")) {
+                return "%22nextToken%22%3A%22{$token}%22";
+            }
+        }
+
+        return false;
     }
 
     public function convertUnixDate($date)

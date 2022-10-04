@@ -65,7 +65,7 @@ class TraktSearchService extends TraktApiService
             'trakt-api-key' => $this->client_id
         ])->acceptJson()
             ->withToken($this->traktConfig['config']['access_token'])
-            ->get("{$this->searchUrl}/{$type}?query=" . $item . "/?extended=full")
+            ->get("{$this->searchUrl}/{$type}?query=" . $item . "&extended=full")
             ->throw()->json();
     }
 

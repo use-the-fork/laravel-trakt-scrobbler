@@ -40,6 +40,10 @@ class ProcessEpisode implements ShouldQueue
     public function handle()
     {
 
+        if ($this->episode->traktable->exists) {
+            return;
+        }
+
         $traktSearchService = (new TraktSearchService());
 
         if (

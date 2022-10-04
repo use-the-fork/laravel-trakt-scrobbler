@@ -36,6 +36,11 @@ class ProcessMovie implements ShouldQueue
      */
     public function handle()
     {
+
+        if ($this->movie->traktable) {
+            return;
+        }
+
         $traktSearchService = (new TraktSearchService());
         $matches = $traktSearchService->search('movie', $this->movie->getEncoded());
 

@@ -51,8 +51,16 @@ class test extends Command
     {
 
 
-        $amazon = new AmazonPrimeService();
-        $amazon->loadHistoryItems(1);
+        $netflix = (new ProcessMovie(Movie::find(1771)));
+        $netflix->handle();
+        dd(1);
+
+        //$netflix = (new ProcessEpisode(Episode::find(1703)));
+        //$netflix->handle();
+        dd(1);
+
+        // $amazon = new AmazonPrimeService();
+        // $amazon->loadHistoryItems(5);
 
         dd(2);
 
